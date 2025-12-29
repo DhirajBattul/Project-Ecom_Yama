@@ -1,9 +1,9 @@
-import axios from 'axios';
+import API from '../axios';
 import React, { useEffect, useState } from 'react';
 import { formatDate } from '../utils/dateUtils';
 
 const Order = () => {
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,18 +12,29 @@ const Order = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/api/orders`);
-        setOrders(response.data);
+        const response = await API.get(`/api/orders`);
+        const data = response.data;
+
+        // Support both array responses and wrapped { orders: [...] }
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else if (data && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+        } else {
+          console.warn('Unexpected orders response shape:', data);
+          setOrders([]);
+        }
+
         setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error('Error fetching orders:', error);
         setError("Failed to fetch orders. Please try again later.");
         setLoading(false);
       }
     };
 
     fetchOrders();
-  }, [baseUrl]);
+  }, []);
 
   const toggleOrderDetails = (orderId) => {
     if (expandedOrder === orderId) {

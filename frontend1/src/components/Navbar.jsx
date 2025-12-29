@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import API from "../axios";
+import { useAuth } from "../Context/AuthContext";
+import { toast } from "react-toastify";
 
 const Navbar = ({ onSelectCategory }) => {
   const getInitialTheme = () => {
@@ -23,7 +25,18 @@ const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 const navbarRef = useRef(null);
   
   const navigate = useNavigate();
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+
+  // Authentication
+  const { user, isAuthenticated, logout } = useAuth();
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+    navigate('/');
+    setIsNavCollapsed(true);
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -50,7 +63,7 @@ useEffect(() => {
   // Initial data fetch (if needed)
   const fetchInitialData = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/api/products`);
+      const response = await API.get(`/api/products`);
       console.log(response.data, 'navbar initial data');
     } catch (error) {
       console.error("Error fetching initial data:", error);
@@ -84,8 +97,8 @@ const handleLinkClick = () => {
     setIsNavCollapsed(true);
     
     try {
-      const response = await axios.get(
-        `${baseUrl}/api/products/search?keyword=${input}`
+      const response = await API.get(
+        `/api/products/search?keyword=${input}`
       );
       setSearchResults(response.data);
       
@@ -134,8 +147,8 @@ const handleLinkClick = () => {
   return (
     <nav className="navbar navbar-expand-lg fixed-top bg-white shadow-sm" ref={navbarRef}>
       <div className="container-fluid">
-        <a className="navbar-brand" href="https://telusko.com/">
-          Telusko
+        <a className="navbar-brand fw-bold" href="/" onClick={handleLinkClick}>
+          Yama
         </a>
         <button
   className="navbar-toggler"
@@ -157,19 +170,21 @@ const handleLinkClick = () => {
                 Home
               </a>
             </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/add_product" onClick={handleLinkClick}>
-                Add Product
-              </a>
-            </li>
-
-            <li className="nav-item">
-              <a className="nav-link" href="/orders" onClick={handleLinkClick}>
-                Orders
-              </a>
-            </li>
-      
-
+            
+            {isAuthenticated() && (
+              <>
+                <li className="nav-item">
+                  <a className="nav-link" href="/add_product" onClick={handleLinkClick}>
+                    Add Product
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link" href="/orders" onClick={handleLinkClick}>
+                    Orders
+                  </a>
+                </li>
+              </>
+            )}
           </ul>
           
          
@@ -179,6 +194,31 @@ const handleLinkClick = () => {
               <i className="bi bi-cart me-1"></i>
               Cart
             </a>
+            
+            {isAuthenticated() ? (
+              <div className="d-flex align-items-center me-3">
+                <span className="nav-link text-dark me-2">
+                  Welcome, {user?.username}
+                </span>
+                <button
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="d-flex align-items-center me-3">
+                <Link to="/login" className="nav-link text-dark me-2" onClick={handleLinkClick}>
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-outline-primary btn-sm" onClick={handleLinkClick}>
+                  Register
+                </Link>
+              </div>
+            )}
+            
             <form className="d-flex" role="search" onSubmit={handleSubmit} id="searchForm">
               <input
                 className="form-control me-2"

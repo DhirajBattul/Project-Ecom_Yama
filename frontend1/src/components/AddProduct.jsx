@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import API from "../axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { formatDateForInput, formatDateForBackend } from "../utils/dateUtils";
@@ -16,7 +16,7 @@ const AddProduct = () => {
     productAvailable: false,
   });
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -96,8 +96,8 @@ const AddProduct = () => {
       new Blob([JSON.stringify(product)], { type: "application/json" })
     );
 
-    axios
-      .post(`${baseUrl}/api/product`, formData, {
+    API
+      .post(`/api/product`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((response) => {

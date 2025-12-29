@@ -4,17 +4,17 @@
 ._*
 
 # --- Frontend (React) ---
-frontend/node_modules/
-frontend/build/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
+frontend1/node_modules/
+frontend1/build/
+frontend1/dist/
+frontend1/.env
+frontend1/.env.local
+frontend1/.env.development.local
+frontend1/.env.test.local
+frontend1/.env.production.local
+frontend1/npm-debug.log*
+frontend1/yarn-debug.log*
+frontend1/yarn-error.log*
 
 # --- Backend (Spring Boot / project-ecom) ---
 project-ecom/target/

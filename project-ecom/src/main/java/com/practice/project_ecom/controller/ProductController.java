@@ -25,7 +25,7 @@ import com.practice.project_ecom.service.ProductService;
 
 
 @RestController
-@CrossOrigin
+//@CrossOrigin
 @RequestMapping("/api")
 public class ProductController {
 	
@@ -34,7 +34,10 @@ public class ProductController {
 	@Autowired
 	private ProductService service;
 	
-	
+	@GetMapping("/hello")
+	public String greet() {
+		return "hello!";
+	}
 	@GetMapping("/products")
 	public ResponseEntity<List<Product>> getAllProducts(){
 		return new ResponseEntity<>(service.getAllProducts(),HttpStatus.OK) ;

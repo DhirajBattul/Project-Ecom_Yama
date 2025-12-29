@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import API from "../axios";
 import { toast } from "react-toastify";
 import { formatDateForInput, formatDateForBackend } from "../utils/dateUtils";
 
@@ -26,21 +26,21 @@ const UpdateProduct = () => {
     const [loading, setLoading] = useState(false);
   
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(
-          `${baseUrl}/api/product/${id}`
+        const response = await API.get(
+          `/api/product/${id}`
         );
 
         setProduct(response.data);
 
         console.log(response.data,'update product response')
       
-        const responseImage = await axios.get(
-          `${baseUrl}/api/product/${id}/image`,
+        const responseImage = await API.get(
+          `/api/product/${id}/image`,
           { responseType: "blob" }
         );
        const imageFile = await converUrlToFile(responseImage.data,response.data.imageName)
@@ -77,8 +77,8 @@ const UpdateProduct = () => {
       new Blob([JSON.stringify(updateProduct)], { type: "application/json" })
     );
 
-    axios
-      .put(`${baseUrl}/api/product/${id}`, formData, {
+    API
+      .put(`/api/product/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((response) => {

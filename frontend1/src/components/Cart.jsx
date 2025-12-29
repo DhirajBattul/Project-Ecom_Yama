@@ -1,23 +1,29 @@
 import React, { useContext, useState, useEffect } from "react";
 import AppContext from "../Context/Context";
-import axios from "axios";
+import API from "../axios";
 import CheckoutPopup from "./CheckoutPopup";
 import { Button } from 'react-bootstrap';
+import { toast } from 'react-toastify';
+import { useAuth } from '../Context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Cart = () => {
-  const { cart, removeFromCart, clearCart } = useContext(AppContext);
+  const { cart, removeFromCart, clearCart, updateCartQuantity } = useContext(AppContext);
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartImage, setCartImage] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
 
   useEffect(() => {
     const fetchImagesAndUpdateCart = async () => {
       console.log("Cart", cart);
       try {
-        const response = await axios.get(`${baseUrl}/api/products`);
+        const response = await API.get(`/api/products`);
         console.log("cart", cart);
         setCartItems(cart);
       } catch (error) {
@@ -92,6 +98,14 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     try {
+      // Pre-validate stock availability before attempting updates
+      for (const item of cartItems) {
+        if (item.quantity > item.stockQuantity) {
+          toast.error(`Insufficient stock for ${item.name}. Please reduce quantity.`);
+          return;
+        }
+      }
+
       for (const item of cartItems) {
         const { imageUrl, imageName, imageData, imageType, quantity, ...rest } = item;
         const updatedStockQuantity = item.stockQuantity - item.quantity;
@@ -106,8 +120,8 @@ const Cart = () => {
           new Blob([JSON.stringify(updatedProductData)], { type: "application/json" })
         );
 
-        await axios
-          .put(`${baseUrl}/api/product/${item.id}`, cartProduct, {
+        await API
+          .put(`/api/product/${item.id}`, cartProduct, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -227,7 +241,14 @@ const Cart = () => {
                     <Button
                       variant="primary"
                       size="lg"
-                      onClick={() => setShowModal(true)}
+                      onClick={() => {
+                        if (!isAuthenticated()) {
+                          toast.info('Please login to checkout');
+                          navigate('/login', { state: { from: location } });
+                          return;
+                        }
+                        setShowModal(true);
+                      }}
                     >
                       Proceed to Checkout
                     </Button>

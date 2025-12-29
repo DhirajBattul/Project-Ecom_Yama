@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import AppContext from "../Context/Context";
+import { useAuth } from "../Context/AuthContext";
 import unplugged from "../assets/unplugged.png";
 
 const Home = ({ selectedCategory }) => {
@@ -48,11 +49,23 @@ const Home = ({ selectedCategory }) => {
     return `data:${mimeType};base64,${base64String}`;
   };
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   const handleAddToCart = (e, product) => {
     e.preventDefault();
-    addToCart(product);
-    setToastProduct(product);
-    setShowToast(true);
+    if (!isAuthenticated()) {
+      // Redirect to login and return to same page after login
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    const success = addToCart(product);
+    if (success) {
+      setToastProduct(product);
+      setShowToast(true);
+    }
   };
 
   const filteredProducts = selectedCategory

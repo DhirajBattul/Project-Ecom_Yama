@@ -1,9 +1,10 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useContext, useEffect } from "react";
 import { useState } from "react";
 import AppContext from "../Context/Context";
-import axios from "../axios";
+import API from "../axios";
 import { toast } from "react-toastify";
+import { useAuth } from "../Context/AuthContext";
 import { formatDate } from "../utils/dateUtils";
 
 const Product = () => {
@@ -12,13 +13,17 @@ const Product = () => {
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(
-          `${baseUrl}/api/product/${id}`
+        // Request product details without sending auth header. Backend should ideally allow public access.
+        const response = await API.get(
+          `/api/product/${id}`,
+          { skipAuth: true, skipAuthRedirect: true }
         );
         setProduct(response.data);
         console.log(response.data);
@@ -27,22 +32,28 @@ const Product = () => {
         }
       } catch (error) {
         console.error("Error fetching product:", error);
+        setFetchError('Product details are not available at the moment.');
       }
     };
 
     const fetchImage = async () => {
-      const response = await axios.get(
-        `${baseUrl}/api/product/${id}/image`,
-        { responseType: "blob" }
-      );
-      setImageUrl(URL.createObjectURL(response.data));
+      try {
+        const response = await API.get(
+          `/api/product/${id}/image`,
+          { responseType: "blob", skipAuth: true, skipAuthRedirect: true }
+        );
+        setImageUrl(URL.createObjectURL(response.data));
+      } catch (err) {
+        console.warn('Failed to fetch image:', err);
+      }
     };
+
     fetchProduct();
   }, [id]);
 
   const deleteProduct = async () => {
     try {
-      await axios.delete(`${baseUrl}/api/product/${id}`);
+      await API.delete(`/api/product/${id}`);
       removeFromCart(id);
       console.log("Product deleted successfully");
       toast.success("Product deleted successfully");
@@ -57,10 +68,35 @@ const Product = () => {
     navigate(`/product/update/${id}`);
   };
 
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   const handlAddToCart = () => {
-    addToCart(product);
-    toast.success("Product added to cart");
+    if (!isAuthenticated()) {
+      toast.info('Please login to add items to cart');
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    const success = addToCart(product);
+    if (success) {
+      toast.success("Product added to cart");
+    }
   };
+
+  if (fetchError) {
+    return (
+      <div className="container mt-5 pt-5">
+        <div className="alert alert-warning text-center">
+          <h5 className="mb-3">Product unavailable</h5>
+          <p className="mb-3">{fetchError}</p>
+          <div>
+            <a href={`/`} className="btn btn-outline-secondary">Back to Home</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

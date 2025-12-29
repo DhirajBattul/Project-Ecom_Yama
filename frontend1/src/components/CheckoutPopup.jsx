@@ -1,10 +1,11 @@
-import axios from 'axios';
+import API from '../axios';
 import React, { useState } from 'react';
 import { Modal, Button, Form, Alert, Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import unplugged from '../assets/unplugged.png';
 
 const CheckoutPopup = ({ show, handleClose, cartItems, totalPrice }) => {
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -25,6 +26,16 @@ const CheckoutPopup = ({ show, handleClose, cartItems, totalPrice }) => {
       return;
     }
 
+    // Pre-validate stock availability on client side
+    for (const item of cartItems) {
+      if (item.quantity > item.stockQuantity) {
+        setToastVariant('danger');
+        setToastMessage(`Insufficient stock for ${item.name}. Please reduce quantity.`);
+        setShowToast(true);
+        return;
+      }
+    }
+
     setValidated(true);
     setIsSubmitting(true);
 
@@ -40,16 +51,20 @@ const CheckoutPopup = ({ show, handleClose, cartItems, totalPrice }) => {
     };
 
     try {
-      const response = await axios.post(`${baseUrl}/api/orders/place`, data);
+      const response = await API.post(`/api/orders/place`, data);
       console.log(response, 'order placed');
+
+      // Call parent handler to update product stock and clear cart
+      if (typeof handleCheckout === 'function') {
+        await handleCheckout();
+      }
 
       // Show success notification
       setToastVariant('success');
       setToastMessage('Order placed successfully!');
       setShowToast(true);
 
-      // Clear cart and redirect after a short delay
-      localStorage.removeItem('cart');
+      // Redirect after a short delay
       setTimeout(() => {
         navigate('/');
       }, 2000);

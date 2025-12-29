@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import AppContext from "../Context/Context";
+import { useAuth } from "../Context/AuthContext";
 import unplugged from "../assets/unplugged.png";
 
 const SearchResults = () => {
@@ -38,13 +40,24 @@ const SearchResults = () => {
       return `data:${mimeType};base64,${base64String}`;
     };
 
+  const { addToCart } = useContext(AppContext);
+
   const handleViewProduct = (productId) => {
     navigate(`/product/${productId}`);
   };
 
+  const { isAuthenticated } = useAuth();
   const handleAddToCart = (productId) => {
-    toast.success(`Product with ID ${productId} added to cart!`);
-    // Add your cart logic here
+    const product = searchData.find(p => p.id === productId);
+    if (!product) return;
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+    const success = addToCart(product);
+    if (success) {
+      toast.success(`${product.name} added to cart`);
+    }
   };
 
   if (loading) {
@@ -71,18 +84,31 @@ const SearchResults = () => {
           <p className="text-muted mb-4">{searchData.length} product(s) found</p>
           
           <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-            {searchData.map((product) => (
-              <div key={product.id} className="col">
-                <div className="card h-100 shadow-sm">
-                  <img 
-                    src={convertBase64ToDataURL(product.productImage)} 
-                    className="card-img-top p-3" 
-                    alt={product.name}
-                    style={{ height: "200px", objectFit: "contain", cursor: "pointer" }}
-                    onClick={() => handleViewProduct(product.id)}
-                  />
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title">{product.name}</h5>
+            {searchData.map((product) => {
+              // Determine best image source: prefer base64 `imageData`, then `productImage`, then external URL, then image endpoint (/api/product/:id/image)
+              const imgSrc = product.imageData
+                ? convertBase64ToDataURL(product.imageData)
+                : product.productImage
+                ? convertBase64ToDataURL(product.productImage)
+                : product.imageUrl
+                ? product.imageUrl
+                : product.imageName
+                ? `/api/product/${product.id}/image`
+                : null;
+
+              return (
+                <div key={product.id} className="col">
+                  <div className="card h-100 shadow-sm">
+                    <img
+                      src={imgSrc || unplugged}
+                      className="card-img-top p-3"
+                      alt={product.name}
+                      style={{ height: "200px", objectFit: "contain", cursor: "pointer" }}
+                      onClick={() => handleViewProduct(product.id)}
+                      onError={(e) => { e.target.src = unplugged; }}
+                    />
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title">{product.name}</h5>
                     <p className="card-text text-muted mb-1">{product.brand}</p>
                     <div className="mb-2">
                       <span className="badge bg-secondary">{product.category}</span>
@@ -113,7 +139,8 @@ const SearchResults = () => {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

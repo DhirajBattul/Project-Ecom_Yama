@@ -17,7 +17,7 @@ import com.practice.project_ecom.model.DTO.OrderResponse;
 import com.practice.project_ecom.service.OrderService;
 
 @RestController
-@CrossOrigin
+//@CrossOrigin
 @RequestMapping("/api")
 public class OrderController {
 	
