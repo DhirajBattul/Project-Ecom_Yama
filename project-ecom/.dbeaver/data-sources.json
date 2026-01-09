@@ -1,0 +1,41 @@
+{
+	"folders": {},
+	"connections": {
+		"postgres-jdbc-19b73b44b84-3f8acd4f578d9b7c": {
+			"provider": "postgresql",
+			"driver": "postgres-jdbc",
+			"name": "project-ecomDB",
+			"save-password": true,
+			"configuration": {
+				"host": "localhost",
+				"port": "5432",
+				"database": "project-ecomDB",
+				"url": "jdbc:postgresql://localhost:5432/project-ecomDB",
+				"configurationType": "MANUAL",
+				"home": "/opt/homebrew/Cellar/postgresql@14/14.20",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-non-default-db@": "false"
+				},
+				"auth-model": "native"
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": true,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	}
+}

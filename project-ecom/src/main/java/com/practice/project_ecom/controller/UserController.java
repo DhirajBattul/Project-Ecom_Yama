@@ -32,6 +32,8 @@ public class UserController {
 	@PostMapping("/register")
 	public String register(@RequestBody User user) {
 		
+		
+		
 		service.saveUser(user);
 		return "Registered!!";
 		

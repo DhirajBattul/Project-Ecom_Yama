@@ -1,5 +1,6 @@
 package com.practice.project_ecom.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,6 +19,15 @@ public class GlobalExceptionHandler {
 	 @ExceptionHandler(ProductNotAddedException.class)
 	 public ResponseEntity<?> handleProductNotAdded(ProductNotAddedException ex){
 		 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+	 }
+	 
+	 @ExceptionHandler(UsernameAlreadyExistsException.class)
+	 public ResponseEntity<String> handleUsernameExists(
+	         UsernameAlreadyExistsException ex) {
+
+	     return ResponseEntity
+	             .status(HttpStatus.CONFLICT)
+	             .body(ex.getMessage());
 	 }
 	 
 }
